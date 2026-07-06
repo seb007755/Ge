@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fef9f3">
+<title>Kopfrechnen</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #fef9f3; --bg-card: #ffffff; --ink: #1f2330; --ink-soft: #5a6175;
+    --accent: #e86a3c; --accent-soft: #fde3d6;
+    --green: #2d8a5f; --green-soft: #d4efdf;
+    --red: #c43e3e; --red-soft: #fadada;
+    --blue: #2d5e8a; --blue-soft: #d6e8f7;
+    --amber: #7d6608; --amber-soft: #fef9e7; --amber-border: #d4a017;
+    --border: #ebe4d8; --yellow: #fff4d6;
+    --shadow: 0 2px 8px rgba(31,35,48,0.06); --shadow-lg: 0 8px 24px rgba(31,35,48,0.12);
+    --radius: 16px; --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Rounded','Segoe UI',system-ui,sans-serif;font-size:17px;line-height:1.45;overscroll-behavior:none}
+  body{min-height:100vh;min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+  button{font-family:inherit;border:none;cursor:pointer}input{font-family:inherit}
+
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logo{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-weight:900;font-size:22px;letter-spacing:-0.01em}
+  .logo .dot{color:var(--accent)}
+  .score-badge{background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px;box-shadow:var(--shadow)}
+  .score-badge .count{color:var(--accent)}
+
+  .progress-wrap{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .progress-bar{flex:1;height:10px;background:var(--border);border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#f29a56);border-radius:999px;transition:width .4s cubic-bezier(.22,1,.36,1);width:0%}
+  .progress-label{font-weight:700;font-size:14px;color:var(--ink-soft);min-width:56px;text-align:right}
+
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 20px;box-shadow:var(--shadow-lg);margin-bottom:16px;text-align:center;position:relative;overflow:hidden}
+  .task-num{position:absolute;top:12px;left:16px;font-size:13px;font-weight:800;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase}
+  .task-type{position:absolute;top:12px;right:16px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;letter-spacing:.03em;text-transform:uppercase}
+  .task-type.biz{color:var(--blue);background:var(--blue-soft)}
+  .task{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-weight:700;font-size:clamp(30px,9vw,50px);line-height:1.1;margin:24px 0 4px;letter-spacing:-0.02em}
+  .task .op{color:var(--accent);margin:0 .08em}
+  .task-hint{font-size:13px;color:var(--ink-soft);font-weight:700;margin:6px 0 8px}
+  .equals{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-weight:700;font-size:clamp(28px,8vw,40px);color:var(--ink-soft);margin:4px 0 14px}
+
+  .inputs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0 4px}
+  .input-group{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .input-label{font-size:12px;font-weight:800;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase}
+  input.answer{width:140px;padding:14px 8px;font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-size:30px;font-weight:700;text-align:center;background:var(--yellow);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--ink);outline:none;transition:all .2s;-moz-appearance:textfield}
+  input.answer::-webkit-outer-spin-button,input.answer::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input.answer:focus{border-color:var(--accent);background:#fff}
+  input.answer.correct{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  input.answer.wrong{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+  input.answer.close{border-color:var(--amber-border);background:var(--amber-soft);color:var(--amber)}
+
+  .feedback{min-height:28px;font-weight:800;font-size:15px;margin-top:12px;letter-spacing:.01em}
+  .feedback.correct{color:var(--green)}.feedback.wrong{color:var(--red)}.feedback.close{color:var(--amber)}
+
+  .actions{display:flex;gap:10px}
+  .btn{flex:1;padding:16px;border-radius:var(--radius-sm);font-weight:800;font-size:16px;letter-spacing:.01em;transition:transform .1s,box-shadow .2s,background .2s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--ink);color:var(--bg-card);box-shadow:var(--shadow)}
+  .btn-primary:disabled{background:var(--border);color:var(--ink-soft);box-shadow:none}
+  .btn-secondary{background:var(--bg-card);color:var(--ink);border:1px solid var(--border)}
+
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  .shake{animation:shake .4s ease-in-out}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .pop{animation:pop .35s ease-out}
+
+  .settings{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+  .settings h3{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;margin:0 0 14px;font-size:20px;font-weight:700}
+  .settings-hint{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:0}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--bg);border:2px solid var(--border);padding:10px 14px;border-radius:999px;font-weight:700;font-size:14px;color:var(--ink);transition:all .15s}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chip.biz{border-color:var(--blue-soft)}
+  .chip.biz.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  .section-divider{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
+  .section-divider .line{flex:1;height:1px;background:var(--border)}
+  .section-divider .label{font-size:12px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+
+  .end-card{text-align:center;padding:40px 20px}
+  .end-title{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-size:32px;font-weight:900;margin:0 0 6px}
+  .end-score{font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-size:72px;font-weight:900;color:var(--accent);line-height:1;margin:20px 0}
+  .end-score .total{font-size:32px;color:var(--ink-soft);font-weight:700}
+  .end-time{font-weight:700;color:var(--ink-soft);margin-bottom:24px}
+  .end-breakdown{text-align:left;background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:24px;font-size:14px}
+  .end-breakdown h4{margin:0 0 10px;font-size:13px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+  .breakdown-row{display:flex;justify-content:space-between;padding:4px 0}
+
+  .hidden{display:none!important}
+
+  .seq-row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:nowrap;margin:10px 0 4px}
+  .seq-cell{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-weight:700;font-size:22px}
+  .seq-given{background:var(--bg);border:2px solid var(--border);color:var(--ink)}
+  .seq-input{background:var(--yellow);border:2px solid var(--border);color:var(--ink);outline:none;text-align:center;font-family:inherit;font-weight:inherit;font-size:inherit;width:56px;height:56px;padding:0;-moz-appearance:textfield}
+  .seq-input::-webkit-outer-spin-button,.seq-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .seq-input:focus{border-color:var(--accent);background:#fff}
+  .seq-input.correct{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .seq-input.wrong{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+  .seq-comma{font-size:20px;color:var(--ink-soft);font-weight:700;margin:0 -2px}
+  @media(max-width:380px){input.answer{width:110px;font-size:24px}.task{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">Kopfrechnen<span class="dot">.</span></div>
+  <div class="score-badge" id="scoreBadge"><span class="count" id="scoreCount">0</span> / <span id="scoreTotal">25</span></div>
+</div>
+
+<div id="startScreen">
+  <div class="settings">
+    <h3>Grundrechenarten</h3>
+    <div class="chips" id="typeChips">
+      <button class="chip active" data-type="mul">1 × 1</button>
+      <button class="chip active" data-type="div">÷ glatt</button>
+      <button class="chip active" data-type="divrest">÷ mit Rest</button>
+      <button class="chip active" data-type="add">+ bis 100</button>
+      <button class="chip active" data-type="sub">− bis 100</button>
+    </div>
+  </div>
+
+  <div class="settings">
+    <h3>Fokus <span class="settings-hint">– 75 % aus diesen Bereichen</span></h3>
+    <div class="chips" id="focusChips">
+      <button class="chip" data-focus="mul678">1×1 mit 6/7/8</button>
+      <button class="chip" data-focus="subzehner">− Zehnerübergang</button>
+      <button class="chip" data-focus="div3">÷ dreistellig</button>
+      <button class="chip" data-focus="reihe">Zahlenreihen</button>
+    </div>
+  </div>
+
+  <div class="section-divider"><span class="line"></span><span class="label">Business</span><span class="line"></span></div>
+
+  <div class="settings">
+    <h3>Überschlag & Prozent <span class="settings-hint">– ±10 % Toleranz</span></h3>
+    <div class="chips" id="bizChips">
+      <button class="chip biz" data-biz="estDiv">÷ Überschlag</button>
+      <button class="chip biz" data-biz="estMul">× Überschlag</button>
+      <button class="chip biz" data-biz="pctOf">% von Betrag</button>
+      <button class="chip biz" data-biz="pctShare">%-Anteil</button>
+      <button class="chip biz" data-biz="pctChange">% Veränderung</button>
+    </div>
+  </div>
+
+  <div class="settings">
+    <h3>Wie viele Aufgaben?</h3>
+    <div class="chips" id="countChips">
+      <button class="chip" data-count="10">10</button>
+      <button class="chip active" data-count="25">25</button>
+      <button class="chip" data-count="50">50</button>
+    </div>
+  </div>
+  <div class="actions"><button class="btn btn-primary" id="startBtn">Los geht's →</button></div>
+</div>
+
+<div id="quizScreen" class="hidden">
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">1 / 25</div>
+  </div>
+  <div class="card" id="taskCard">
+    <div class="task-num" id="taskNum">Aufgabe 1</div>
+    <div class="task-type" id="taskType">1×1</div>
+    <div class="task" id="taskText"></div>
+    <div class="task-hint hidden" id="taskHint"></div>
+    <div class="equals" id="equalsSign">=</div>
+    <div class="inputs" id="inputs"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" id="skipBtn">Abbrechen</button>
+    <button class="btn btn-primary" id="checkBtn">Prüfen</button>
+  </div>
+</div>
+
+<div id="endScreen" class="hidden">
+  <div class="card end-card">
+    <div class="end-title" id="endTitle">Fertig!</div>
+    <div class="end-score"><span id="endCorrect">0</span><span class="total">/<span id="endTotal">25</span></span></div>
+    <div class="end-time" id="endTime"></div>
+    <div class="end-breakdown" id="endBreakdown"></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" id="homeBtn">Menü</button>
+    <button class="btn btn-primary" id="againBtn">Neue Runde</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const TOLERANCE = 0.10;
+const state = {
+  types: new Set(['mul','div','divrest','add','sub']),
+  focus: new Set(), biz: new Set(),
+  count: 25, tasks: [], current: 0, correct: 0, answered: false, startedAt: null, byType: {},
+};
+
+const TYPE_LABELS = {
+  mul:'1×1',div:'÷ glatt',divrest:'÷ Rest',add:'+',sub:'−',
+  mul678:'1×1 · 6/7/8',subzehner:'− Übergang',div3:'÷ 3-stellig',reihe:'Reihe',
+  estDiv:'÷ Überschlag',estMul:'× Überschlag',
+  pctOf:'% von Betrag',pctShare:'%-Anteil',pctChange:'% Δ',
+};
+const BIZ_TYPES = new Set(['estDiv','estMul','pctOf','pctShare','pctChange']);
+
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rand(0,a.length-1)];
+
+function fmt(n){
+  if(n==null)return'';
+  const neg=n<0;
+  const abs=Math.abs(n);
+  const parts=String(abs).split('.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return(neg?'−':'')+parts.join(',');
+}
+
+const generators={
+  // ---- Grundrechenarten ----
+  mul:()=>{const a=rand(2,9),b=rand(2,9);return{type:'mul',key:'mul:'+Math.min(a,b)+','+Math.max(a,b),text:`${a} <span class="op">×</span> ${b}`,answer:a*b}},
+  div:()=>{const a=rand(2,9),b=rand(2,9);return{type:'div',key:'div:'+a*b+'/'+b,text:`${a*b} <span class="op">÷</span> ${b}`,answer:a}},
+  divrest:()=>{let d,v;do{d=rand(10,90);v=rand(2,9)}while(d%v===0);return{type:'divrest',key:'dr:'+d+'/'+v,text:`${d} <span class="op">÷</span> ${v}`,answer:Math.floor(d/v),rest:d%v}},
+  add:()=>{const a=rand(1,90),b=rand(1,100-a);return{type:'add',key:'add:'+Math.min(a,b)+','+Math.max(a,b),text:`${a} <span class="op">+</span> ${b}`,answer:a+b}},
+  sub:()=>{const a=rand(10,100),b=rand(1,a);return{type:'sub',key:'sub:'+a+'-'+b,text:`${a} <span class="op">−</span> ${b}`,answer:a-b}},
+
+  // ---- Fokus ----
+  mul678:()=>{const h=pick([6,7,8]),o=rand(2,9);const[a,b]=Math.random()<.5?[h,o]:[o,h];return{type:'mul678',key:'mul:'+Math.min(a,b)+','+Math.max(a,b),text:`${a} <span class="op">×</span> ${b}`,answer:a*b}},
+  subzehner:()=>{let a,e;do{a=rand(11,98);e=a%10}while(e===9);const b=rand(Math.max(2,e+1),9);return{type:'subzehner',key:'sz:'+a+'-'+b,text:`${a} <span class="op">−</span> ${b}`,answer:a-b}},
+  div3:()=>{
+    const tw=Math.random()<.5,wr=Math.random()<.5;
+    let dv=tw?rand(10,25):rand(2,9);
+    // 2-stellig: Quotient 2-19; 1-stellig: Quotient begrenzt, Dividend 100-999
+    const mq=dv>=10?Math.max(2,Math.ceil(100/dv)):Math.ceil(100/dv);
+    const xq=dv>=10?Math.min(19,Math.floor(999/dv)):Math.min(Math.floor(999/dv),150);
+    if(mq>xq)return generators.div3();
+    if(wr){const q=rand(mq,xq);const dd=q*dv+rand(1,dv-1);if(dd<100||dd>999)return generators.div3();return{type:'div3',key:'d3:'+dd+'/'+dv,text:`${dd} <span class="op">÷</span> ${dv}`,answer:q,rest:dd%dv}}
+    const q=rand(mq,xq);const dd=q*dv;if(dd<100||dd>999)return generators.div3();return{type:'div3',key:'d3:'+dd+'/'+dv,text:`${dd} <span class="op">÷</span> ${dv}`,answer:q}
+  },
+  reihe:()=>{
+    // Zahlenreihe: Multiplikator 2-15, entweder Pos 1-5 oder 6-10
+    const m=rand(2,15);
+    const start=Math.random()<.5?1:6;
+    const seq=[];for(let i=start;i<start+5;i++)seq.push(m*i);
+    // 3 oder 4 Felder verstecken
+    const hideCount=rand(3,4);
+    const indices=[0,1,2,3,4];
+    // Shuffle indices, pick first hideCount
+    for(let i=4;i>0;i--){const j=rand(0,i);[indices[i],indices[j]]=[indices[j],indices[i]]}
+    const hidden=new Set(indices.slice(0,hideCount));
+    const answers=[];hidden.forEach(i=>answers.push(seq[i]));
+    return{type:'reihe',key:'r:'+m+'x'+start+':'+[...hidden].sort().join(''),
+      isReihe:true,multiplier:m,startPos:start,sequence:seq,hidden:[...hidden].sort(),
+      answers:answers.sort((a,b)=>a-b)}
+  },
+
+  // ---- Business: Überschlag ----
+  estDiv:()=>{
+    // 3-7-stelliger Dividend ÷ 1-2-stelliger Divisor
+    const divisor=Math.random()<.5?rand(2,9):rand(11,49);
+    const result=rand(50,9999);
+    const noise=rand(0,Math.floor(divisor*0.4));
+    const dividend=result*divisor+noise;
+    const exact=dividend/divisor;
+    return{type:'estDiv',key:'ed:'+dividend+'/'+divisor,approx:true,
+      text:`${fmt(dividend)} <span class="op">÷</span> ${divisor}`,
+      hint:'Überschlag – ±10 % reicht',answer:exact,displayAnswer:fmt(Math.round(exact))}
+  },
+  estMul:()=>{
+    const a=rand(11,999),b=rand(11,99),exact=a*b;
+    return{type:'estMul',key:'em:'+Math.min(a,b)+','+Math.max(a,b),approx:true,
+      text:`${fmt(a)} <span class="op">×</span> ${fmt(b)}`,
+      hint:'Überschlag – ±10 % reicht',answer:exact,displayAnswer:fmt(exact)}
+  },
+
+  // ---- Business: Prozent ----
+  pctOf:()=>{
+    const pct=pick([5,8,10,12,15,20,25,30,33,40,50,60,75]);
+    const base=pick([rand(1,9)*100000,rand(1,9)*1000000,rand(10,99)*10000,rand(100,999)*1000]);
+    const exact=base*pct/100;
+    return{type:'pctOf',key:'po:'+pct+'%'+base,approx:true,
+      text:`${pct} % <span class="op">von</span> ${fmt(base)}`,
+      hint:'Überschlag – ±10 % reicht',answer:exact,displayAnswer:fmt(Math.round(exact))}
+  },
+  pctShare:()=>{
+    const total=pick([rand(1,9)*1000,rand(1,9)*10000,rand(1,9)*100000,rand(10,99)*1000]);
+    const sp=rand(5,95);const part=Math.round(total*sp/100);
+    const exact=(part/total)*100;
+    return{type:'pctShare',key:'ps:'+part+'/'+total,approx:true,inputSuffix:'%',
+      text:`${fmt(part)} <span class="op">von</span> ${fmt(total)}`,
+      hint:'Wie viel %? (±10 % Toleranz)',answer:exact,
+      displayAnswer:exact.toFixed(1).replace('.',',')+' %'}
+  },
+  pctChange:()=>{
+    const base=pick([rand(1,9)*100000,rand(1,9)*1000000,rand(10,99)*10000,rand(100,999)*1000]);
+    const cp=rand(-40,80);
+    if(cp===0)return generators.pctChange();
+    const nv=Math.round(base*(1+cp/100));
+    const exact=((nv-base)/base)*100;
+    return{type:'pctChange',key:'pc:'+base+'>'+nv,approx:true,inputSuffix:'%',allowNegative:true,
+      text:`${fmt(base)} <span class="op">→</span> ${fmt(nv)}`,
+      hint:'Veränderung in %? (mit Vorzeichen)',answer:exact,
+      displayAnswer:(exact>=0?'+':'')+exact.toFixed(1).replace('.',',')+' %'}
+  },
+};
+
+function tryAdd(tasks,seen,gen,maxTries){
+  for(let t=0;t<(maxTries||50);t++){
+    const task=generators[gen]();
+    if(!task.key||!seen.has(task.key)){if(task.key)seen.add(task.key);tasks.push(task);return true}
+  }
+  return false;
+}
+
+function buildTasks(){
+  const types=Array.from(state.types),focus=Array.from(state.focus),biz=Array.from(state.biz);
+  const allFocus=[...focus,...biz];
+  if(types.length===0&&allFocus.length===0)return[];
+  const tasks=[],seen=new Set();
+  if(allFocus.length>0){
+    const fc=Math.round(state.count*.75),nc=state.count-fc;
+    const fp=[];for(const f of allFocus)fp.push(f);while(fp.length<fc)fp.push(pick(allFocus));fp.length=fc;
+    for(const f of fp)tryAdd(tasks,seen,f);
+    if(nc>0&&types.length>0){const np=[];for(const t of types)if(np.length<nc)np.push(t);while(np.length<nc)np.push(pick(types));for(const t of np)tryAdd(tasks,seen,t)}
+    else if(nc>0){for(let i=0;i<nc;i++)tryAdd(tasks,seen,pick(allFocus))}
+  }else{
+    for(const t of types)tryAdd(tasks,seen,t);while(tasks.length<state.count)if(!tryAdd(tasks,seen,pick(types)))break
+  }
+  for(let i=tasks.length-1;i>0;i--){const j=rand(0,i);[tasks[i],tasks[j]]=[tasks[j],tasks[i]]}
+  return tasks.slice(0,state.count);
+}
+
+const $=id=>document.getElementById(id);
+const startScreen=$('startScreen'),quizScreen=$('quizScreen'),endScreen=$('endScreen'),scoreBadge=$('scoreBadge');
+
+function setupChips(id,set,allowEmpty){
+  $(id).addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
+    const k=b.dataset.type||b.dataset.focus||b.dataset.biz;
+    if(set.has(k)){if(allowEmpty||set.size>1){set.delete(k);b.classList.remove('active')}}
+    else{set.add(k);b.classList.add('active')}
+  });
+}
+setupChips('typeChips',state.types,false);
+setupChips('focusChips',state.focus,true);
+setupChips('bizChips',state.biz,true);
+
+$('countChips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
+  state.count=parseInt(b.dataset.count,10);
+  document.querySelectorAll('#countChips .chip').forEach(c=>c.classList.remove('active'));b.classList.add('active')});
+
+$('startBtn').addEventListener('click',startQuiz);
+
+function startQuiz(){
+  state.tasks=buildTasks();state.current=0;state.correct=0;state.answered=false;state.startedAt=Date.now();state.byType={};
+  startScreen.classList.add('hidden');endScreen.classList.add('hidden');quizScreen.classList.remove('hidden');scoreBadge.classList.remove('hidden');
+  $('scoreTotal').textContent=state.count;renderTask();
+}
+
+function renderTask(){
+  const task=state.tasks[state.current];
+  const isBiz=BIZ_TYPES.has(task.type);
+  $('taskNum').textContent=`Aufgabe ${state.current+1}`;
+  const te=$('taskType');te.textContent=TYPE_LABELS[task.type];te.className='task-type'+(isBiz?' biz':'');
+  $('taskText').innerHTML=task.text;
+  const hi=$('taskHint');if(task.hint){hi.textContent=task.hint;hi.classList.remove('hidden')}else{hi.classList.add('hidden')}
+  $('equalsSign').textContent=task.approx?'≈':'=';
+  $('equalsSign').classList.remove('hidden');
+  $('progressLabel').textContent=`${state.current+1} / ${state.count}`;
+  $('progressFill').style.width=`${(state.current/state.count)*100}%`;
+  $('scoreCount').textContent=state.correct;
+  $('feedback').textContent='';$('feedback').className='feedback';
+  $('checkBtn').textContent='Prüfen';$('checkBtn').disabled=false;state.answered=false;
+
+  const inputs=$('inputs');
+
+  if(task.isReihe){
+    // Reihen: spezielle Darstellung
+    $('taskText').innerHTML=`<span class="op">×${task.multiplier}</span>`;
+    $('taskHint').textContent=`Positionen ${task.startPos}–${task.startPos+4} der ${task.multiplier}er-Reihe`;
+    $('taskHint').classList.remove('hidden');
+    $('equalsSign').classList.add('hidden');
+    let html='<div class="seq-row">';
+    task.sequence.forEach((val,i)=>{
+      if(i>0)html+='<span class="seq-comma">,</span>';
+      if(task.hidden.includes(i)){
+        html+=`<input class="seq-input" data-seq-idx="${i}" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off">`;
+      }else{
+        html+=`<div class="seq-cell seq-given">${val}</div>`;
+      }
+    });
+    html+='</div>';
+    inputs.innerHTML=html;
+    const firstInput=inputs.querySelector('.seq-input');
+    if(firstInput){firstInput.focus();inputs.querySelectorAll('.seq-input').forEach(el=>el.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){e.preventDefault();const next=this.parentElement.querySelector(`.seq-input[data-seq-idx="${parseInt(this.dataset.seqIdx)+1}"]`)||this.parentElement.querySelector(`.seq-input:not([data-seq-idx="${this.dataset.seqIdx}"])`);if(next&&next.value.trim()==='')next.focus();else $('checkBtn').click()}
+      if(e.key==='Tab'){const allInputs=[...inputs.querySelectorAll('.seq-input')];const idx=allInputs.indexOf(this);if(idx<allInputs.length-1){e.preventDefault();allInputs[idx+1].focus()}}
+    }))}
+    return;
+  }
+
+  const needsRest=(task.rest!==undefined&&!task.approx);
+  const suffix=task.inputSuffix||'';
+
+  if(needsRest){
+    inputs.innerHTML=`<div class="input-group"><span class="input-label">Ergebnis</span><input class="answer" id="answerInput" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off"></div><div class="input-group"><span class="input-label">Rest</span><input class="answer" id="restInput" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off"></div>`;
+  }else{
+    const im=task.allowNegative?'text':(task.approx?'decimal':'numeric');
+    const tp=task.approx?'text':'number';
+    inputs.innerHTML=`<div class="input-group">${suffix?`<span class="input-label">${suffix}</span>`:''}<input class="answer" id="answerInput" type="${tp}" inputmode="${im}" ${tp==='number'?'pattern="[0-9]*"':''} autocomplete="off" placeholder="${task.approx?'Schätzung':''}"></div>`;
+  }
+  const ans=$('answerInput');ans.focus();ans.addEventListener('keydown',onEnter);
+  const rest=$('restInput');if(rest)rest.addEventListener('keydown',onEnter);
+}
+
+function onEnter(e){if(e.key==='Enter'){e.preventDefault();$('checkBtn').click()}}
+
+$('checkBtn').addEventListener('click',()=>{if(state.answered){nextTask();return}checkAnswer()});
+$('skipBtn').addEventListener('click',()=>{if(confirm('Runde abbrechen?')){quizScreen.classList.add('hidden');startScreen.classList.remove('hidden')}});
+
+function parseInput(val){
+  let s=val.trim();if(s==='')return NaN;
+  // Negative: accept both − (unicode) and - (ascii)
+  s=s.replace(/^[−\u2212]/,'-');
+  if(s.includes('.')&&s.includes(',')){s=s.replace(/\./g,'').replace(',','.')}
+  else if(s.includes(',')){
+    // 1,5 -> 1.5 (decimal) | 1,234 -> 1234 (thousands)
+    if(/,\d{3}$/.test(s)&&s.indexOf(',')==s.lastIndexOf(','))s=s.replace(',','');
+    else s=s.replace(',','.');
+  }else if(/^\-?\d{1,3}(\.\d{3})+$/.test(s)){s=s.replace(/\./g,'')}
+  return parseFloat(s);
+}
+
+function checkAnswer(){
+  const task=state.tasks[state.current];
+
+  if(task.isReihe){
+    const seqInputs=[...document.querySelectorAll('.seq-input')];
+    // Check all filled
+    const empty=seqInputs.find(el=>el.value.trim()==='');
+    if(empty){empty.focus();return}
+    state.answered=true;
+    state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
+    state.byType[task.type].total++;
+    let allCorrect=true;
+    seqInputs.forEach(el=>{
+      const idx=parseInt(el.dataset.seqIdx);
+      const val=parseInt(el.value,10);
+      if(val===task.sequence[idx]){el.classList.add('correct')}
+      else{el.classList.add('wrong');allCorrect=false}
+    });
+    const card=$('taskCard'),fb=$('feedback');
+    if(allCorrect){
+      state.correct++;state.byType[task.type].correct++;
+      fb.textContent='✓ Richtig!';fb.classList.add('correct');
+      card.classList.add('pop');setTimeout(()=>card.classList.remove('pop'),400);
+      $('scoreCount').textContent=state.correct;
+      setTimeout(()=>nextTask(),800);
+    }else{
+      fb.innerHTML='✗ Falsch. Reihe: <b>'+task.sequence.join(', ')+'</b>';
+      fb.classList.add('wrong');
+      card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),400);
+      $('checkBtn').textContent='Weiter →';
+    }
+    return;
+  }
+
+  const ansEl=$('answerInput'),restEl=$('restInput');
+  const raw=ansEl.value.trim();if(raw===''){ansEl.focus();return}
+
+  const ansNum=task.approx?parseInput(raw):parseInt(raw,10);
+  if(isNaN(ansNum)){ansEl.focus();return}
+
+  const hasRest=(task.rest!==undefined&&!task.approx);
+  let isCorrect,isClose=false;
+
+  if(task.approx){
+    const exact=task.answer,diff=Math.abs(ansNum-exact),tol=Math.abs(exact)*TOLERANCE;
+    isCorrect=diff<=tol;
+    if(!isCorrect)isClose=diff<=Math.abs(exact)*0.20;
+  }else if(hasRest){
+    if(!restEl||restEl.value.trim()===''){if(restEl)restEl.focus();return}
+    isCorrect=(ansNum===task.answer&&parseInt(restEl.value,10)===task.rest);
+  }else{
+    isCorrect=(ansNum===task.answer);
+  }
+
+  state.answered=true;
+  state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
+  state.byType[task.type].total++;
+
+  const card=$('taskCard'),fb=$('feedback');
+
+  if(isCorrect){
+    state.correct++;state.byType[task.type].correct++;
+    ansEl.classList.add('correct');if(restEl)restEl.classList.add('correct');
+    fb.innerHTML=task.approx?`✓ Richtig! (exakt: ${task.displayAnswer})`:'✓ Richtig!';
+    fb.classList.add('correct');card.classList.add('pop');setTimeout(()=>card.classList.remove('pop'),400);
+    $('scoreCount').textContent=state.correct;
+    setTimeout(()=>nextTask(),task.approx?1200:650);
+  }else{
+    ansEl.classList.add(isClose?'close':'wrong');if(restEl)restEl.classList.add('wrong');
+    let ct=task.approx?task.displayAnswer:(hasRest?task.answer+` Rest ${task.rest}`:task.answer);
+    if(isClose){
+      fb.innerHTML=`≈ Knapp! Richtig: <b>${ct}</b>`;fb.classList.add('close');
+    }else{
+      fb.innerHTML=`✗ Falsch. Richtig: <b>${ct}</b>`;fb.classList.add('wrong');
+    }
+    card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),400);
+    $('checkBtn').textContent='Weiter →';
+  }
+}
+
+function nextTask(){state.current++;if(state.current>=state.count)finishQuiz();else renderTask()}
+
+function finishQuiz(){
+  quizScreen.classList.add('hidden');endScreen.classList.remove('hidden');scoreBadge.classList.add('hidden');
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+  $('endCorrect').textContent=state.correct;$('endTotal').textContent=state.count;
+  const pct=state.correct/state.count;
+  let t;if(pct===1)t='Perfekt! 🏆';else if(pct>=.9)t='Super! 🌟';else if(pct>=.7)t='Gut gemacht! 👍';else if(pct>=.5)t='Weiter üben! 💪';else t='Nächste Runde? 🔄';
+  $('endTitle').textContent=t;
+  const secs=Math.round((Date.now()-state.startedAt)/1000),mm=Math.floor(secs/60),ss=secs%60;
+  $('endTime').textContent=`Zeit: ${mm>0?mm+':'+String(ss).padStart(2,'0'):ss+'s'} · Ø ${(secs/state.count).toFixed(1)}s/Aufgabe`;
+  const bd=$('endBreakdown');
+  const rows=Object.entries(state.byType).map(([type,s])=>
+    `<div class="breakdown-row"><span>${TYPE_LABELS[type]||type}</span><span><b>${s.correct}</b> / ${s.total}</span></div>`).join('');
+  bd.innerHTML=`<h4>Aufschlüsselung</h4>${rows}`;
+}
+
+$('againBtn').addEventListener('click',startQuiz);
+$('homeBtn').addEventListener('click',()=>{endScreen.classList.add('hidden');startScreen.classList.remove('hidden');scoreBadge.classList.add('hidden')});
+scoreBadge.classList.add('hidden');
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+})();
+</script>
+</body>
+</html>
