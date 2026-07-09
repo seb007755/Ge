@@ -81,6 +81,27 @@
   .chip.biz{border-color:var(--blue-soft)}
   .chip.biz.active{background:var(--blue);border-color:var(--blue);color:#fff}
 
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .preset{display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:left;transition:all .15s}
+  .preset .pico{font-size:22px;line-height:1;margin-bottom:2px}
+  .preset .plabel{font-weight:800;font-size:16px;color:var(--ink)}
+  .preset .psub{font-weight:700;font-size:12px;color:var(--ink-soft);line-height:1.25}
+  .preset.active{background:var(--accent);border-color:var(--accent)}
+  .preset.active .plabel{color:#fff}
+  .preset.active .psub{color:#fff;opacity:.9}
+  .customize-toggle{width:100%;background:transparent;color:var(--ink-soft);font-weight:800;font-size:14px;padding:10px 8px 2px;text-align:center}
+  .customize-toggle:active{color:var(--ink)}
+
+  .streak-badge{background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px;box-shadow:var(--shadow);white-space:nowrap}
+  .streak-badge .flame{filter:saturate(1)}
+  .streak-badge #streakCount{color:var(--accent)}
+  .streak-badge.off{opacity:.5}
+  .streak-badge.off .flame{filter:grayscale(1)}
+
+  .progress-fill.retry{background:linear-gradient(90deg,var(--blue),#5a8fc0)}
+  .progress-label.retry{color:var(--blue)}
+  .end-streak{font-weight:800;font-size:16px;color:var(--accent);margin:-10px 0 20px}
+
   .section-divider{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
   .section-divider .line{flex:1;height:1px;background:var(--border)}
   .section-divider .label{font-size:12px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
@@ -111,41 +132,55 @@
 <body>
 <div class="header">
   <div class="logo">Kopfrechnen<span class="dot">.</span></div>
-  <div class="score-badge" id="scoreBadge"><span class="count" id="scoreCount">0</span> / <span id="scoreTotal">25</span></div>
+  <div class="score-badge hidden" id="scoreBadge"><span class="count" id="scoreCount">0</span> / <span id="scoreTotal">25</span></div>
+  <div class="streak-badge off" id="streakBadge" title="Tage in Folge mit mindestens einer Runde"><span class="flame">🔥</span> <span id="streakCount">0</span></div>
 </div>
 
 <div id="startScreen">
   <div class="settings">
-    <h3>Grundrechenarten</h3>
-    <div class="chips" id="typeChips">
-      <button class="chip active" data-type="mul">1 × 1</button>
-      <button class="chip active" data-type="div">÷ glatt</button>
-      <button class="chip active" data-type="divrest">÷ mit Rest</button>
-      <button class="chip active" data-type="add">+ bis 100</button>
-      <button class="chip active" data-type="sub">− bis 100</button>
+    <h3>Was möchtest du üben?</h3>
+    <div class="presets" id="presetBtns">
+      <button class="preset" data-preset="grund"><span class="pico">🧮</span><span class="plabel">Grundlagen</span><span class="psub">Mal · Teilen · Plus · Minus</span></button>
+      <button class="preset" data-preset="fokus"><span class="pico">🎯</span><span class="plabel">Fokus</span><span class="psub">Schwachstellen gezielt üben</span></button>
+      <button class="preset" data-preset="biz"><span class="pico">📊</span><span class="plabel">Business</span><span class="psub">Überschlag & Prozent</span></button>
+      <button class="preset" data-preset="mix"><span class="pico">🎲</span><span class="plabel">Gemischt</span><span class="psub">Alles zusammen</span></button>
     </div>
+    <button class="customize-toggle" id="customizeToggle" aria-expanded="false">▾ Anpassen (einzelne Typen)</button>
   </div>
 
-  <div class="settings">
-    <h3>Fokus <span class="settings-hint">– 75 % aus diesen Bereichen</span></h3>
-    <div class="chips" id="focusChips">
-      <button class="chip" data-focus="mul678">1×1 mit 6/7/8</button>
-      <button class="chip" data-focus="subzehner">− Zehnerübergang</button>
-      <button class="chip" data-focus="div3">÷ dreistellig</button>
-      <button class="chip" data-focus="reihe">Zahlenreihen</button>
+  <div id="customPanel" class="hidden">
+    <div class="settings">
+      <h3>Grundrechenarten</h3>
+      <div class="chips" id="typeChips">
+        <button class="chip active" data-type="mul">1 × 1</button>
+        <button class="chip active" data-type="div">÷ glatt</button>
+        <button class="chip active" data-type="divrest">÷ mit Rest</button>
+        <button class="chip active" data-type="add">+ bis 100</button>
+        <button class="chip active" data-type="sub">− bis 100</button>
+      </div>
     </div>
-  </div>
 
-  <div class="section-divider"><span class="line"></span><span class="label">Business</span><span class="line"></span></div>
+    <div class="settings">
+      <h3>Fokus <span class="settings-hint">– Schwerpunkt (75 %) im Mix</span></h3>
+      <div class="chips" id="focusChips">
+        <button class="chip" data-focus="mul678">1×1 mit 6/7/8</button>
+        <button class="chip" data-focus="subzehner">− Zehnerübergang</button>
+        <button class="chip" data-focus="div3">÷ dreistellig</button>
+        <button class="chip" data-focus="reihe">Zahlenreihen</button>
+      </div>
+    </div>
 
-  <div class="settings">
-    <h3>Überschlag & Prozent <span class="settings-hint">– ±10 % Toleranz</span></h3>
-    <div class="chips" id="bizChips">
-      <button class="chip biz" data-biz="estDiv">÷ Überschlag</button>
-      <button class="chip biz" data-biz="estMul">× Überschlag</button>
-      <button class="chip biz" data-biz="pctOf">% von Betrag</button>
-      <button class="chip biz" data-biz="pctShare">%-Anteil</button>
-      <button class="chip biz" data-biz="pctChange">% Veränderung</button>
+    <div class="section-divider"><span class="line"></span><span class="label">Business</span><span class="line"></span></div>
+
+    <div class="settings">
+      <h3>Überschlag & Prozent <span class="settings-hint">– ±10 % Toleranz</span></h3>
+      <div class="chips" id="bizChips">
+        <button class="chip biz" data-biz="estDiv">÷ Überschlag</button>
+        <button class="chip biz" data-biz="estMul">× Überschlag</button>
+        <button class="chip biz" data-biz="pctOf">% von Betrag</button>
+        <button class="chip biz" data-biz="pctShare">%-Anteil</button>
+        <button class="chip biz" data-biz="pctChange">% Veränderung</button>
+      </div>
     </div>
   </div>
 
@@ -153,6 +188,7 @@
     <h3>Wie viele Aufgaben?</h3>
     <div class="chips" id="countChips">
       <button class="chip" data-count="10">10</button>
+      <button class="chip" data-count="15">15</button>
       <button class="chip active" data-count="25">25</button>
       <button class="chip" data-count="50">50</button>
     </div>
@@ -185,6 +221,7 @@
     <div class="end-title" id="endTitle">Fertig!</div>
     <div class="end-score"><span id="endCorrect">0</span><span class="total">/<span id="endTotal">25</span></span></div>
     <div class="end-time" id="endTime"></div>
+    <div class="end-streak" id="endStreak"></div>
     <div class="end-breakdown" id="endBreakdown"></div>
   </div>
   <div class="actions">
@@ -198,10 +235,21 @@
 'use strict';
 
 const TOLERANCE = 0.10;
+const STREAK_KEY = 'kr_streak';
+const ALL_TYPES = ['mul','div','divrest','add','sub'];
+const ALL_FOCUS = ['mul678','subzehner','div3','reihe'];
+const ALL_BIZ = ['estDiv','estMul','pctOf','pctShare','pctChange'];
+const PRESETS = {
+  grund:{types:ALL_TYPES,focus:[],biz:[]},
+  fokus:{types:ALL_TYPES,focus:ALL_FOCUS,biz:[]},
+  biz:{types:ALL_TYPES,focus:[],biz:ALL_BIZ},
+  mix:{types:ALL_TYPES,focus:ALL_FOCUS,biz:ALL_BIZ},
+};
 const state = {
-  types: new Set(['mul','div','divrest','add','sub']),
+  types: new Set(ALL_TYPES),
   focus: new Set(), biz: new Set(),
   count: 25, tasks: [], current: 0, correct: 0, answered: false, startedAt: null, byType: {},
+  phase: 'main', retryQueue: [], lastCorrect: false,
 };
 
 const TYPE_LABELS = {
@@ -346,11 +394,42 @@ function setupChips(id,set,allowEmpty){
     const k=b.dataset.type||b.dataset.focus||b.dataset.biz;
     if(set.has(k)){if(allowEmpty||set.size>1){set.delete(k);b.classList.remove('active')}}
     else{set.add(k);b.classList.add('active')}
+    syncPresetHighlight();
   });
 }
 setupChips('typeChips',state.types,false);
 setupChips('focusChips',state.focus,true);
 setupChips('bizChips',state.biz,true);
+
+// ---- Presets ↔ Chips ----
+function setSet(set,arr){set.clear();arr.forEach(x=>set.add(x))}
+function eqSet(set,arr){return set.size===arr.length&&arr.every(x=>set.has(x))}
+function renderChipsFromState(){
+  document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.toggle('active',state.types.has(c.dataset.type)));
+  document.querySelectorAll('#focusChips .chip').forEach(c=>c.classList.toggle('active',state.focus.has(c.dataset.focus)));
+  document.querySelectorAll('#bizChips .chip').forEach(c=>c.classList.toggle('active',state.biz.has(c.dataset.biz)));
+}
+function matchedPreset(){
+  for(const p of Object.keys(PRESETS)){
+    const d=PRESETS[p];
+    if(eqSet(state.types,d.types)&&eqSet(state.focus,d.focus)&&eqSet(state.biz,d.biz))return p;
+  }
+  return null;
+}
+function syncPresetHighlight(){
+  const m=matchedPreset();
+  document.querySelectorAll('#presetBtns .preset').forEach(b=>b.classList.toggle('active',b.dataset.preset===m));
+}
+$('presetBtns').addEventListener('click',e=>{const b=e.target.closest('.preset');if(!b)return;
+  const d=PRESETS[b.dataset.preset];if(!d)return;
+  setSet(state.types,d.types);setSet(state.focus,d.focus);setSet(state.biz,d.biz);
+  renderChipsFromState();syncPresetHighlight();
+});
+$('customizeToggle').addEventListener('click',()=>{
+  const panel=$('customPanel'),open=panel.classList.toggle('hidden')===false;
+  $('customizeToggle').setAttribute('aria-expanded',open);
+  $('customizeToggle').textContent=(open?'▴':'▾')+' Anpassen (einzelne Typen)';
+});
 
 $('countChips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
   state.count=parseInt(b.dataset.count,10);
@@ -358,23 +437,55 @@ $('countChips').addEventListener('click',e=>{const b=e.target.closest('.chip');i
 
 $('startBtn').addEventListener('click',startQuiz);
 
+// ---- Streak (Tage in Folge mit mind. 1 Runde) ----
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function daysBetween(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000)}
+function loadStreak(){try{return JSON.parse(localStorage.getItem(STREAK_KEY))||{last:null,streak:0,longest:0}}catch(e){return{last:null,streak:0,longest:0}}}
+function liveStreak(){const s=loadStreak();if(!s.last)return 0;const g=daysBetween(s.last,todayStr());return(g===0||g===1)?s.streak:0}
+function recordActivity(){
+  const s=loadStreak(),today=todayStr();let isRecord=false;
+  if(s.last!==today){
+    const g=s.last?daysBetween(s.last,today):null;
+    s.streak=(g===1)?s.streak+1:1;
+    s.last=today;
+    if(s.streak>=(s.longest||0)){s.longest=s.streak;isRecord=s.streak>1}
+    try{localStorage.setItem(STREAK_KEY,JSON.stringify(s))}catch(e){}
+  }
+  return{streak:s.streak,longest:s.longest,isRecord};
+}
+function renderStreakBadge(){
+  const n=liveStreak();$('streakCount').textContent=n;
+  $('streakBadge').classList.toggle('off',n===0);
+}
+
 function startQuiz(){
   state.tasks=buildTasks();state.current=0;state.correct=0;state.answered=false;state.startedAt=Date.now();state.byType={};
-  startScreen.classList.add('hidden');endScreen.classList.add('hidden');quizScreen.classList.remove('hidden');scoreBadge.classList.remove('hidden');
+  state.phase='main';state.retryQueue=[];state.lastCorrect=false;
+  startScreen.classList.add('hidden');endScreen.classList.add('hidden');quizScreen.classList.remove('hidden');
+  scoreBadge.classList.remove('hidden');$('streakBadge').classList.add('hidden');
   $('scoreTotal').textContent=state.count;renderTask();
 }
 
+function currentTask(){return state.phase==='retry'?state.retryQueue[0]:state.tasks[state.current]}
+
 function renderTask(){
-  const task=state.tasks[state.current];
+  const task=currentTask();
+  const retry=state.phase==='retry';
   const isBiz=BIZ_TYPES.has(task.type);
-  $('taskNum').textContent=`Aufgabe ${state.current+1}`;
+  $('taskNum').textContent=retry?'🔁 Wiederholung':`Aufgabe ${state.current+1}`;
   const te=$('taskType');te.textContent=TYPE_LABELS[task.type];te.className='task-type'+(isBiz?' biz':'');
   $('taskText').innerHTML=task.text;
   const hi=$('taskHint');if(task.hint){hi.textContent=task.hint;hi.classList.remove('hidden')}else{hi.classList.add('hidden')}
   $('equalsSign').textContent=task.approx?'≈':'=';
   $('equalsSign').classList.remove('hidden');
-  $('progressLabel').textContent=`${state.current+1} / ${state.count}`;
-  $('progressFill').style.width=`${(state.current/state.count)*100}%`;
+  const pl=$('progressLabel'),pf=$('progressFill');
+  if(retry){
+    pl.textContent=`🔁 noch ${state.retryQueue.length}`;pl.classList.add('retry');
+    pf.classList.add('retry');pf.style.width='100%';
+  }else{
+    pl.textContent=`${state.current+1} / ${state.count}`;pl.classList.remove('retry');
+    pf.classList.remove('retry');pf.style.width=`${(state.current/state.count)*100}%`;
+  }
   $('scoreCount').textContent=state.correct;
   $('feedback').textContent='';$('feedback').className='feedback';
   $('checkBtn').textContent='Prüfen';$('checkBtn').disabled=false;state.answered=false;
@@ -422,8 +533,8 @@ function renderTask(){
 
 function onEnter(e){if(e.key==='Enter'){e.preventDefault();$('checkBtn').click()}}
 
-$('checkBtn').addEventListener('click',()=>{if(state.answered){nextTask();return}checkAnswer()});
-$('skipBtn').addEventListener('click',()=>{if(confirm('Runde abbrechen?')){quizScreen.classList.add('hidden');startScreen.classList.remove('hidden')}});
+$('checkBtn').addEventListener('click',()=>{if(state.answered){advance();return}checkAnswer()});
+$('skipBtn').addEventListener('click',()=>{if(confirm('Runde abbrechen?'))goHome()});
 
 function parseInput(val){
   let s=val.trim();if(s==='')return NaN;
@@ -439,7 +550,7 @@ function parseInput(val){
 }
 
 function checkAnswer(){
-  const task=state.tasks[state.current];
+  const task=currentTask();
 
   if(task.isReihe){
     const seqInputs=[...document.querySelectorAll('.seq-input')];
@@ -447,8 +558,6 @@ function checkAnswer(){
     const empty=seqInputs.find(el=>el.value.trim()==='');
     if(empty){empty.focus();return}
     state.answered=true;
-    state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
-    state.byType[task.type].total++;
     let allCorrect=true;
     seqInputs.forEach(el=>{
       const idx=parseInt(el.dataset.seqIdx);
@@ -456,13 +565,18 @@ function checkAnswer(){
       if(val===task.sequence[idx]){el.classList.add('correct')}
       else{el.classList.add('wrong');allCorrect=false}
     });
+    state.lastCorrect=allCorrect;
+    if(state.phase==='main'){
+      state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
+      state.byType[task.type].total++;
+      if(allCorrect)state.byType[task.type].correct++;else state.retryQueue.push(task);
+    }
     const card=$('taskCard'),fb=$('feedback');
     if(allCorrect){
-      state.correct++;state.byType[task.type].correct++;
+      if(state.phase==='main'){state.correct++;$('scoreCount').textContent=state.correct}
       fb.textContent='✓ Richtig!';fb.classList.add('correct');
       card.classList.add('pop');setTimeout(()=>card.classList.remove('pop'),400);
-      $('scoreCount').textContent=state.correct;
-      setTimeout(()=>nextTask(),800);
+      setTimeout(()=>advance(),800);
     }else{
       fb.innerHTML='✗ Falsch. Reihe: <b>'+task.sequence.join(', ')+'</b>';
       fb.classList.add('wrong');
@@ -493,18 +607,21 @@ function checkAnswer(){
   }
 
   state.answered=true;
-  state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
-  state.byType[task.type].total++;
+  state.lastCorrect=isCorrect;
+  if(state.phase==='main'){
+    state.byType[task.type]=state.byType[task.type]||{correct:0,total:0};
+    state.byType[task.type].total++;
+    if(isCorrect)state.byType[task.type].correct++;else state.retryQueue.push(task);
+  }
 
   const card=$('taskCard'),fb=$('feedback');
 
   if(isCorrect){
-    state.correct++;state.byType[task.type].correct++;
+    if(state.phase==='main'){state.correct++;$('scoreCount').textContent=state.correct}
     ansEl.classList.add('correct');if(restEl)restEl.classList.add('correct');
     fb.innerHTML=task.approx?`✓ Richtig! (exakt: ${task.displayAnswer})`:'✓ Richtig!';
     fb.classList.add('correct');card.classList.add('pop');setTimeout(()=>card.classList.remove('pop'),400);
-    $('scoreCount').textContent=state.correct;
-    setTimeout(()=>nextTask(),task.approx?1200:650);
+    setTimeout(()=>advance(),task.approx?1200:650);
   }else{
     ansEl.classList.add(isClose?'close':'wrong');if(restEl)restEl.classList.add('wrong');
     let ct=task.approx?task.displayAnswer:(hasRest?task.answer+` Rest ${task.rest}`:task.answer);
@@ -518,7 +635,22 @@ function checkAnswer(){
   }
 }
 
-function nextTask(){state.current++;if(state.current>=state.count)finishQuiz();else renderTask()}
+function advance(){
+  if(state.phase==='retry'){
+    const cur=state.retryQueue.shift();
+    if(!state.lastCorrect)state.retryQueue.push(cur); // falsch → hinten wieder anstellen
+    if(state.retryQueue.length===0){finishQuiz();return}
+    renderTask();return;
+  }
+  state.current++;
+  if(state.current>=state.tasks.length){
+    if(state.retryQueue.length>0){
+      // Wiederholungsphase: falsche Aufgaben mischen, dann bis alle sitzen
+      for(let i=state.retryQueue.length-1;i>0;i--){const j=rand(0,i);[state.retryQueue[i],state.retryQueue[j]]=[state.retryQueue[j],state.retryQueue[i]]}
+      state.phase='retry';renderTask();
+    }else finishQuiz();
+  }else renderTask();
+}
 
 function finishQuiz(){
   quizScreen.classList.add('hidden');endScreen.classList.remove('hidden');scoreBadge.classList.add('hidden');
@@ -533,11 +665,21 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
   const rows=Object.entries(state.byType).map(([type,s])=>
     `<div class="breakdown-row"><span>${TYPE_LABELS[type]||type}</span><span><b>${s.correct}</b> / ${s.total}</span></div>`).join('');
   bd.innerHTML=`<h4>Aufschlüsselung</h4>${rows}`;
+
+  const st=recordActivity();
+  scoreBadge.classList.add('hidden');$('streakBadge').classList.remove('hidden');renderStreakBadge();
+  const es=$('endStreak');
+  if(st.isRecord)es.textContent=`🔥 ${st.streak} Tage in Folge – neuer Rekord!`;
+  else if(st.streak>1)es.textContent=`🔥 ${st.streak} Tage in Folge – dranbleiben!`;
+  else es.textContent='🔥 Tag 1 – morgen weitermachen für die Serie!';
 }
 
 $('againBtn').addEventListener('click',startQuiz);
-$('homeBtn').addEventListener('click',()=>{endScreen.classList.add('hidden');startScreen.classList.remove('hidden');scoreBadge.classList.add('hidden')});
-scoreBadge.classList.add('hidden');
+function goHome(){endScreen.classList.add('hidden');quizScreen.classList.add('hidden');startScreen.classList.remove('hidden');scoreBadge.classList.add('hidden');$('streakBadge').classList.remove('hidden');renderStreakBadge()}
+$('homeBtn').addEventListener('click',goHome);
+
+// Init
+renderChipsFromState();syncPresetHighlight();renderStreakBadge();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 })();
 </script>
